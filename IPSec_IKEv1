@@ -38,4 +38,6 @@ Crypto map entry won't be active until ACL is matched.
     interface <INT_NAME>
      crypto map <crypto_map_name>
 
+6. Don't forget to make sure there are routes to tunnel destination IP and external destination subnet IPs.
+
 External access to/from <tunnel_DST_IP> is required over udp/500, udp/4500 (in case of NAT traversal)
