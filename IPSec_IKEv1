@@ -1,0 +1,41 @@
+#            Actual configuration of IPSec IKEv1 tunnel with PSK.
+
+
+
+            PHASE 1 (establish connection and agree on security settings)
+
+1. Create an ACL for internal subnets access to remote internal subnets.
+    ip access-list extended <ACL_name>
+     permit ip <internal_SRC_SUBNET_1> <MASK> <external_DST_SUBNET_1> <MASK>
+     permit ip <internal_SRC_SUBNET_2> <MASK> <external_DST_SUBNET_2> <MASK>
+     permit ip <internal_SRC_SUBNET_3> <MASK> <external_DST_SUBNET_3> <MASK>
+
+2. Create a PSK association to remote end of the tunnel
+    crypto isakmp key <key_value> address <tunnel_DST_IP>
+
+
+
+            PHASE 2 (establish an encrypted IPSec tunnel)
+
+3. Create an ipsec transform-set which will then be applied to peer communication
+    crypto ipsec transform-set <transform-set_name> esp-aes 256 esp-sha256-hmac (AES 256 bit, SHA 256 bit in this example, "esp-aes 256 esp-sha256-hmac" can be different depending on remote side configuration)
+     mode <tunnel/transport> (mode type depends on the agreed configuration)
+
+4. Create a crypto map (<list_#> should better be an increment of 10 and you can add more crypto map entries, each will be used for different peerings)
+    crypto map <crypto_map_name> <list_#> ipsec-isakmp
+     set peer <tunnel_DST_IP>
+     set transform-set <transform-set_name>
+     set pfs group14
+     set security-association lifetime seconds 7200
+     set security-association lifetime kilobytes disable
+     match address <ACL_name>
+
+Crypto map entry won't be active until ACL is matched.
+
+
+
+5. Apply the crypto map to an interface used for communication
+    interface <INT_NAME>
+     crypto map <crypto_map_name>
+
+External access to/from <tunnel_DST_IP> is required over udp/500, udp/4500 (in case of NAT traversal)
