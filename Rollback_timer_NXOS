@@ -1,0 +1,13 @@
+checkpoint test
+
+scheduler job name CONFIGREVERT <--- Define a job where you can set CLIs that you like to execute
+ rollback running-config checkpoint test <--- this CLI will be executed at the scheduled time
+ exit
+
+scheduler schedule name ROLLBACK <--- Define a scheduler
+ job name CONFIGREVERT <--- Set the job you defined above
+  time start 2023:Nov:18:12:50 <--- The time the CLI to be executed. Should be yyyy:mmm:dd:HH:MM or +dd:HH:MM
+  end
+
+show scheduler schedule name ROLLBACK
+show clock
