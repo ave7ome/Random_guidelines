@@ -1,4 +1,4 @@
-Flood & Learn basic config:
+### Flood & Learn basic config:
 conf t
     install feature-set fabric
     nv overlay
@@ -23,7 +23,7 @@ conf t
             mcast-group 224.11.11.11
 
 
-BGP EVPN basic config:
+### BGP EVPN basic config:
 conf t
     install feature-set fabric
     nv overlay
@@ -60,6 +60,84 @@ conf t
             update-source loopback0
             address-family l2vpn evpn
                 send-community both       
+    !
+    evpn
+        vni 11111 l2
+            rd auto
+            route-target import auto
+            route-target export auto
+
+
+### BGP EVPN with L3VNI (Symmetric IRB):
+conf t
+    install feature-set fabric
+    feature-set fabric
+    install feature-set virtualization 
+    feature fabric forwarding
+    nv overlay evpn
+    nv overlay
+    feature nv overlay
+    feature pim
+    feature ospf
+    feature bgp
+    feature vn-segment-vlan-based
+    !
+    vlan 11
+        vn-segment 11111
+    !
+    vlan 33
+        vn-segment 33333
+    !
+    vrf context VRF_A
+        vni 33333
+        rd auto
+        address-family ipv4 unicast
+            route-target both auto
+            route-target both auto evpn
+    !
+    interface loopback0
+        no shut
+        ip add 1.1.1.51/32
+        igmp join 224.11.11.11
+    !
+    PIM BIDIR config
+    !
+    interface vlan11
+        no shutdown
+        vrf member VRF_A
+        ip address 11.0.0.254/24
+        fabric forwarding anycast-gateway
+    !
+    interface vlan33
+        no shutdown
+        vrf member VRF_!
+        ip forward
+    !
+    interface nve1
+        no shutdown
+        source-interface loopback0
+        host-reachability protocol bgp
+        member vni 11111
+            mcast-group 224.11.11.11
+        member vni 33333 associate-vrf
+    !
+    route-map PERMIT permit 10
+    !
+    router bgp 12345
+        neighbor 1.1.1.71
+            remote-as 12345
+            update-source loopback0
+            address-family l2vpn evpn
+                send-community both
+         neighbor 1.1.1.72
+            remote-as 12345
+            update-source loopback0
+            address-family l2vpn evpn
+                send-community both
+            vrf context VRF_A
+                address-family ipv4 unicast
+                    advertise l2vpn evpn
+                    redistribute direct route-map PERMIT
     !
     evpn
         vni 11111 l2
