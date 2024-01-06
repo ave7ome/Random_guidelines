@@ -81,6 +81,8 @@ conf t
     feature ospf
     feature bgp
     feature vn-segment-vlan-based
+    !    
+    fabric forwarding anycast-gateway-mac 1234.1234.1234
     !
     vlan 11
         vn-segment 11111
@@ -144,4 +146,4 @@ conf t
             rd auto
             route-target import auto
             route-target export auto
-    
+
